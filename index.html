@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Moon Sighting Calendar</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f6f2e8;
+    --card: #fffdf7;
+    --ink: #1c2333;
+    --muted: #6a7183;
+    --line: #e3dccb;
+    --accent: #a8690f;
+    --accent-ink: #ffffff;
+    --warn-bg: #fdecc8;
+    --warn-ink: #6b4300;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1322;
+      --card: #151d31;
+      --ink: #eef0f6;
+      --muted: #97a1b8;
+      --line: #252f49;
+      --accent: #f0c468;
+      --accent-ink: #1c1504;
+      --warn-bg: #3a2c0c;
+      --warn-ink: #f6d99a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main { max-width: 720px; margin: 0 auto; padding: 40px 16px 56px; }
+
+  .hero { text-align: center; padding: 16px 0 36px; }
+  .hero .eyebrow { color: var(--muted); font-size: 0.95rem; }
+  .hero h1 {
+    margin: 8px 0 12px;
+    font: 600 clamp(2rem, 8vw, 3.25rem)/1.1 "Iowan Old Style", Palatino, Georgia, serif;
+    text-wrap: balance;
+  }
+  .hero p { margin: 4px 0; color: var(--muted); text-wrap: balance; }
+  .hero p strong { color: var(--ink); font-weight: 600; }
+
+  .warning {
+    background: var(--warn-bg);
+    color: var(--warn-ink);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 24px;
+    font-size: 0.9rem;
+  }
+
+  h2 {
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 12px;
+  }
+  details { margin-top: 32px; }
+  summary { cursor: pointer; color: var(--muted); margin-bottom: 12px; }
+
+  .month {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .month header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 2px 12px;
+    margin-bottom: 12px;
+  }
+  .month h3 {
+    margin: 0;
+    font: 600 1.25rem/1.2 "Iowan Old Style", Palatino, Georgia, serif;
+  }
+  .month .meta { color: var(--muted); font-size: 0.85rem; }
+  .month .note { color: var(--muted); font-size: 0.85rem; margin: 12px 0 0; }
+
+  .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .grid .dow {
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--muted);
+    padding-bottom: 4px;
+  }
+  .day {
+    text-align: center;
+    padding: 6px 0;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+  }
+  .day b { display: block; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+  .day span { display: block; font-size: 0.68rem; color: var(--muted); white-space: nowrap; }
+  .day.today { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .day.today span { color: inherit; opacity: 0.85; }
+
+  footer { margin-top: 32px; text-align: center; color: var(--muted); font-size: 0.8rem; }
+</style>
+</head>
+<body>
+<main>
+  <section class="hero" id="hero"></section>
+  <div id="warnings"></div>
+  <div id="calendar"></div>
+  <footer>Islamic days begin at sunset, so each date starts the evening before the day shown.</footer>
+</main>
+
+<script src="sightings.js"></script>
+<script>
+  const DAY = 86400000;
+
+  // All dates are handled as UTC midnights so daylight saving never shifts a day.
+  const parse = (s) => {
+    const [y, m, d] = s.split("-").map(Number);
+    return Date.UTC(y, m - 1, d);
+  };
+  const fmt = (t, opts) =>
+    new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", ...opts }).format(t);
+  const long = (t) => fmt(t, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const medium = (t) => fmt(t, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+  const short = (t) => fmt(t, { day: "numeric", month: "short" });
+
+  const el = (tag, className, text) => {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  };
+
+  // Add ?today=2026-10-12 to the URL to preview the page on another date.
+  const override = new URLSearchParams(location.search).get("today");
+  const now = new Date();
+  const today = override
+    ? parse(override)
+    : Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+
+  // The 1st of each month is the day after the sighting. A month's length is
+  // only known once the next sighting is entered; until then we show 29 days.
+  const months = SIGHTINGS
+    .map((s) => ({ ...s, sightedOn: parse(s.sighted), start: parse(s.sighted) + DAY }))
+    .sort((a, b) => a.start - b.start);
+  months.forEach((m, i) => {
+    const next = months[i + 1];
+    m.open = !next;
+    m.days = next ? Math.round((next.start - m.start) / DAY) : 29;
+  });
+  // If the previous month ran 30 days, the moon was not seen on its 29th evening.
+  months.forEach((m, i) => {
+    const prev = months[i - 1];
+    m.completed = prev && prev.days === 30 ? prev : null;
+  });
+
+  const latest = months[months.length - 1];
+  const current = [...months].reverse().find((m) => m.start <= today);
+  const dayOfMonth = current ? (today - current.start) / DAY + 1 : null;
+
+  function renderHero() {
+    const hero = document.getElementById("hero");
+    hero.append(el("div", "eyebrow", long(today)));
+
+    if (!current) {
+      hero.append(el("h1", "", "No sighting recorded"));
+      hero.append(el("p", "", "There is no moon sighting on or before this date in sightings.js."));
+      return;
+    }
+
+    const sighted = el("p");
+    if (current.completed) {
+      sighted.append("The moon was not sighted on the evening of ", el("strong", "", long(current.start - 2 * DAY)), `, so ${current.completed.month} completed 30 days.`);
+    } else {
+      sighted.append("The moon was sighted on the evening of ", el("strong", "", long(current.sightedOn)), ".");
+    }
+
+    if (dayOfMonth <= current.days) {
+      // Non-breaking hyphen so a name like "al-Thani" never splits across lines.
+      hero.append(el("h1", "", `${dayOfMonth} ${current.month.replaceAll("-", "‑")} ${current.year}`));
+      hero.append(sighted);
+      if (current.open) {
+        hero.append(el("p", "", `The next moon will be looked for on the evening of ${long(current.start + 28 * DAY)}.`));
+      }
+    } else if (dayOfMonth === 30) {
+      hero.append(el("h1", "", "Awaiting moon sighting"));
+      hero.append(el("p", "", `Today is either 30 ${current.month} or the 1st of the next month. Add the new sighting to sightings.js to confirm.`));
+    } else {
+      hero.append(el("h1", "", "Sighting needs updating"));
+      hero.append(el("p", "", `The last month recorded is ${current.month} ${current.year}, which began on ${long(current.start)}. Add the new sighting to sightings.js.`));
+    }
+  }
+
+  function renderWarnings() {
+    const bad = months.filter((m) => !m.open && m.days !== 29 && m.days !== 30);
+    if (!bad.length) return;
+    const box = el("div", "warning");
+    box.append("Check sightings.js: " + bad.map((m) => `${m.month} ${m.year} works out at ${m.days} days`).join("; ") + ". A month should be 29 or 30 days.");
+    document.getElementById("warnings").append(box);
+  }
+
+  function renderMonth(m) {
+    const card = el("section", "month");
+    const header = el("header");
+    header.append(el("h3", "", `${m.month} ${m.year}`));
+    const began = m.completed ? `Began after 30 days of ${m.completed.month}` : `Sighted ${medium(m.sightedOn)}`;
+    header.append(el("div", "meta", `${began} · ${m.open ? "in progress" : m.days + " days"}`));
+    card.append(header);
+
+    const grid = el("div", "grid");
+    ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].forEach((d) => grid.append(el("div", "dow", d)));
+    const blanks = (new Date(m.start).getUTCDay() + 6) % 7;
+    for (let i = 0; i < blanks; i++) grid.append(el("div"));
+    for (let d = 1; d <= m.days; d++) {
+      const date = m.start + (d - 1) * DAY;
+      const cell = el("div", date === today ? "day today" : "day");
+      cell.append(el("b", "", d), el("span", "", short(date)));
+      grid.append(cell);
+    }
+    card.append(grid);
+
+    if (m.open) {
+      card.append(el("p", "note", `The 30th is not shown yet. It depends on whether the moon is sighted on the evening of ${medium(m.start + 28 * DAY)}.`));
+    }
+    return card;
+  }
+
+  function renderCalendar() {
+    const calendar = document.getElementById("calendar");
+    if (!months.length) return;
+    const currentYear = (current || latest).year;
+    const years = [...new Set(months.map((m) => m.year))].sort((a, b) => b - a);
+
+    years.forEach((year) => {
+      const cards = months.filter((m) => m.year === year).reverse().map(renderMonth);
+      if (year === currentYear) {
+        calendar.append(el("h2", "", `${year} AH so far`), ...cards);
+      } else {
+        const details = el("details");
+        details.append(el("summary", "", `${year} AH`), ...cards);
+        calendar.append(details);
+      }
+    });
+  }
+
+  renderHero();
+  renderWarnings();
+  renderCalendar();
+</script>
+</body>
+</html>
