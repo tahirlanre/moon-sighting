@@ -89,6 +89,7 @@
   }
   .month .meta { color: var(--muted); font-size: 0.85rem; }
   .month .note { color: var(--muted); font-size: 0.85rem; margin: 12px 0 0; }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
 
   .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
   .grid .dow {
@@ -140,6 +141,13 @@
     if (text !== undefined) node.textContent = text;
     return node;
   };
+  const link = (href, text) => {
+    const a = el("a", "", text);
+    a.href = href;
+    a.target = "_blank";
+    a.rel = "noopener";
+    return a;
+  };
 
   // Add ?today=2026-10-12 to the URL to preview the page on another date.
   const override = new URLSearchParams(location.search).get("today");
@@ -184,6 +192,7 @@
     } else {
       sighted.append("The moon was sighted on the evening of ", el("strong", "", long(current.sightedOn)), ".");
     }
+    if (current.source) sighted.append(" ", link(current.source, "View the announcement"), ".");
 
     if (dayOfMonth <= current.days) {
       // Non-breaking hyphen so a name like "al-Thani" never splits across lines.
@@ -214,7 +223,9 @@
     const header = el("header");
     header.append(el("h3", "", `${m.month} ${m.year}`));
     const began = m.completed ? `Began after 30 days of ${m.completed.month}` : `Sighted ${medium(m.sightedOn)}`;
-    header.append(el("div", "meta", `${began} · ${m.open ? "in progress" : m.days + " days"}`));
+    const meta = el("div", "meta", `${began} · ${m.open ? "in progress" : m.days + " days"}`);
+    if (m.source) meta.append(" · ", link(m.source, "Announcement"));
+    header.append(meta);
     card.append(header);
 
     const grid = el("div", "grid");

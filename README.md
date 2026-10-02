@@ -11,11 +11,12 @@ The page only ever shows what is known. The latest month shows days 1–29; the 
 Everything lives in [`sightings.js`](sightings.js). When the new month is announced, add one line to the end of the list and commit:
 
 ```js
-{ year: 1448, month: "Jumada al-Ula", sighted: "2026-10-10" },
+{ year: 1448, month: "Jumada al-Ula", sighted: "2026-10-10", source: MOJ + 86 },
 ```
 
 - `sighted` is the evening the moon was seen (`YYYY-MM-DD`). The 1st of the month is the following day.
 - If the moon was **not** seen on the evening of the 29th, the month completes 30 days. Enter the next evening instead (the evening of the 30th), so the 1st still works out as the day after.
+- `source` is optional. It is a link to the announcement, shown on the page as "Announcement". `MOJ + 86` builds the Ministry of Justice link for `itemId=86`; any full URL works too, such as an SPA article.
 - The easiest way is to [edit the file on GitHub](https://github.com/tahirlanre/moon-sighting/edit/main/sightings.js) and commit. GitHub Pages redeploys in about a minute.
 
 Month names, for copy and paste: Muharram, Safar, Rabi' al-Awwal, Rabi' al-Thani, Jumada al-Ula, Jumada al-Akhirah, Rajab, Sha'ban, Ramadan, Shawwal, Dhul Qa'dah, Dhul Hijjah.
