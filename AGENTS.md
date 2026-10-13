@@ -7,6 +7,7 @@ A static page that shows today's Hijri date and the months of the current Hijri 
 - **Only confirmed dates.** The page shows what has been announced, never a prediction. The latest month shows days 1–29; the 30th appears only once the next month's entry exists. If the data runs out, the page says "Awaiting moon sighting". Do not add projected or "expected" dates unless the owner asks; this was considered and deliberately left out.
 - **Source of truth is the Saudi Supreme Court.** Dates follow the monthly decisions of its Crescent Department (دائرة الأهلة), published by the Ministry of Justice. Not Umm al-Qura calculations, not other countries' sightings, not astronomical estimates.
 - **No build step, no dependencies, no framework.** Two files (`index.html`, `sightings.js`) served as-is by GitHub Pages from the root of `main`. Keep it that way.
+- **Minimal text.** The page shows today's Gregorian date, the Hijri date, and the month grids with an "Announcement" link per month. No explanatory sentences: not how a month began, not when the next moon will be looked for, not why the 30th is missing. The owner asked for this on 2026-10-13.
 - **Keep updating trivial.** The owner updates the site by adding one line to `sightings.js`, usually in the GitHub web editor. Any change must preserve that.
 
 ## Files
@@ -22,7 +23,7 @@ A static page that shows today's Hijri date and the months of the current Hijri 
 ```
 
 - `sighted` is the **evening the moon was seen**. The 1st of the month is the following day. Getting this off by one is the most likely mistake.
-- If the moon was not seen on the 29th evening, the month completes 30 days. The entry then holds the evening of the 30th, so the 1st still works out as the day after. The page detects this case itself (previous month ran 30 days) and words it as "Began after 30 days of …" rather than "Sighted".
+- If the moon was not seen on the 29th evening, the month completes 30 days. The entry then holds the evening of the 30th, so the 1st still works out as the day after.
 - `source` is optional: a URL to the announcement, rendered as a link. `MOJ + <itemId>` builds the Ministry of Justice link.
 - A month that works out to anything other than 29 or 30 days triggers a warning banner on the page. Treat it as a data error.
 
@@ -41,7 +42,7 @@ All date arithmetic is on UTC midnights so daylight saving never shifts a day. "
 ## Verifying changes
 
 - Serve the folder locally: `python3 -m http.server 8000`, then open http://localhost:8000.
-- Append `?today=YYYY-MM-DD` to preview any date. Check at least: a normal day, the day after the latest month's 29th (should say "Awaiting moon sighting"), and a day in a month that followed a 30-day month.
+- Append `?today=YYYY-MM-DD` to preview any date. Check at least: a normal day, the day after the latest month's 29th (should say "Awaiting moon sighting"), and the 30th of a month that ran 30 days.
 - Check the browser console for errors and the page for the warning banner.
 - Check phone width; the 7-column grid must not overflow.
 

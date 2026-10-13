@@ -46,8 +46,6 @@
     font: 600 clamp(2rem, 8vw, 3.25rem)/1.1 "Iowan Old Style", Palatino, Georgia, serif;
     text-wrap: balance;
   }
-  .hero p { margin: 4px 0; color: var(--muted); text-wrap: balance; }
-  .hero p strong { color: var(--ink); font-weight: 600; }
 
   .warning {
     background: var(--warn-bg);
@@ -88,7 +86,6 @@
     font: 600 1.25rem/1.2 "Iowan Old Style", Palatino, Georgia, serif;
   }
   .month .meta { color: var(--muted); font-size: 0.85rem; }
-  .month .note { color: var(--muted); font-size: 0.85rem; margin: 12px 0 0; }
   a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
 
   .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
@@ -135,7 +132,6 @@
   const fmt = (t, opts) =>
     new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", ...opts }).format(t);
   const long = (t) => fmt(t, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-  const medium = (t) => fmt(t, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
   const short = (t) => fmt(t, { day: "numeric", month: "short" });
 
   const el = (tag, className, text) => {
@@ -162,17 +158,12 @@
   // The 1st of each month is the day after the sighting. A month's length is
   // only known once the next sighting is entered; until then we show 29 days.
   const months = SIGHTINGS
-    .map((s) => ({ ...s, sightedOn: parse(s.sighted), start: parse(s.sighted) + DAY }))
+    .map((s) => ({ ...s, start: parse(s.sighted) + DAY }))
     .sort((a, b) => a.start - b.start);
   months.forEach((m, i) => {
     const next = months[i + 1];
     m.open = !next;
     m.days = next ? Math.round((next.start - m.start) / DAY) : 29;
-  });
-  // If the previous month ran 30 days, the moon was not seen on its 29th evening.
-  months.forEach((m, i) => {
-    const prev = months[i - 1];
-    m.completed = prev && prev.days === 30 ? prev : null;
   });
 
   const latest = months[months.length - 1];
@@ -182,34 +173,11 @@
   function renderHero() {
     const hero = document.getElementById("hero");
     hero.append(el("div", "eyebrow", long(today)));
-
-    if (!current) {
-      hero.append(el("h1", "", "No sighting recorded"));
-      hero.append(el("p", "", "There is no moon sighting on or before this date in sightings.js."));
-      return;
-    }
-
-    const sighted = el("p");
-    if (current.completed) {
-      sighted.append("The moon was not sighted on the evening of ", el("strong", "", long(current.start - 2 * DAY)), `, so ${current.completed.month} completed 30 days.`);
-    } else {
-      sighted.append("The moon was sighted on the evening of ", el("strong", "", long(current.sightedOn)), ".");
-    }
-    if (current.source) sighted.append(" ", link(current.source, "View the announcement"), ".");
-
-    if (dayOfMonth <= current.days) {
+    if (current && dayOfMonth <= current.days) {
       // Non-breaking hyphen so a name like "al-Thani" never splits across lines.
-      hero.append(el("h1", "", `${dayOfMonth} ${current.month.replaceAll("-", "‑")} ${current.year}`));
-      hero.append(sighted);
-      if (current.open) {
-        hero.append(el("p", "", `The next moon will be looked for on the evening of ${long(current.start + 28 * DAY)}.`));
-      }
-    } else if (dayOfMonth === 30) {
-      hero.append(el("h1", "", "Awaiting moon sighting"));
-      hero.append(el("p", "", `Today is either 30 ${current.month} or the 1st of the next month. Add the new sighting to sightings.js to confirm.`));
+      hero.append(el("h1", "", `${dayOfMonth} ${current.month.replaceAll("-", "\u2011")} ${current.year}`));
     } else {
-      hero.append(el("h1", "", "Sighting needs updating"));
-      hero.append(el("p", "", `The last month recorded is ${current.month} ${current.year}, which began on ${long(current.start)}. Add the new sighting to sightings.js.`));
+      hero.append(el("h1", "", "Awaiting moon sighting"));
     }
   }
 
@@ -225,10 +193,11 @@
     const card = el("section", "month");
     const header = el("header");
     header.append(el("h3", "", `${m.month} ${m.year}`));
-    const began = m.completed ? `Began after 30 days of ${m.completed.month}` : `Sighted ${medium(m.sightedOn)}`;
-    const meta = el("div", "meta", `${began} · ${m.open ? "in progress" : m.days + " days"}`);
-    if (m.source) meta.append(" · ", link(m.source, "Announcement"));
-    header.append(meta);
+    if (m.source) {
+      const meta = el("div", "meta");
+      meta.append(link(m.source, "Announcement"));
+      header.append(meta);
+    }
     card.append(header);
 
     const grid = el("div", "grid");
@@ -242,10 +211,6 @@
       grid.append(cell);
     }
     card.append(grid);
-
-    if (m.open) {
-      card.append(el("p", "note", `The 30th is not shown yet. It depends on whether the moon is sighted on the evening of ${medium(m.start + 28 * DAY)}.`));
-    }
     return card;
   }
 
