@@ -27,7 +27,7 @@ const SIGHTINGS = [
   { year: 1448, month: "Safar",          sighted: "2026-07-14", source: MOJ + 83 }, // decision 209: sighted
   { year: 1448, month: "Rabi' al-Awwal", sighted: "2026-08-13", source: MOJ + 84 }, // decision 210: not sighted 12 Aug, Safar completed 30 days
   { year: 1448, month: "Rabi' al-Thani", sighted: "2026-09-11", source: MOJ + 85 }, // decision 211: sighted
-  { year: 1448, month: "Jumada al-Ula",  sighted: "2026-10-11" },                  // not sighted 10 Oct, Rabi' al-Thani completed 30 days (MOJ link pending; site unreachable)
+  { year: 1448, month: "Jumada al-Ula",  sighted: "2026-10-11", source: MOJ + 86 }, // decision 212: not sighted 10 Oct, Rabi' al-Thani completed 30 days
 ];
 
 // Month names, for copy and paste:

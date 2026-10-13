@@ -32,7 +32,7 @@ Each month's decision is a page on the Ministry of Justice site with a sequentia
 
 https://www.moj.gov.sa/ar/MediaCenter/News/Pages/SupremeCourtNewsDetails.aspx?itemId=85
 
-itemId 82–85 are Muharram to Rabi' al-Thani 1448. The text states the evening the crescent was looked for, whether it was seen (ثبوت رؤية) or not (عدم ثبوت رؤية), and the Gregorian date of the 1st. English searches and plain HTTP fetches usually fail to find these; open the URL in a browser, or Google the Arabic title `قرار دائرة الأهلة بالمحكمة العليا لشهر <month> <year> هـ`. The Supreme Court issues a decision every month, not only for Ramadan and Dhul Hijjah.
+itemId 82–86 are Muharram to Jumada al-Ula 1448. The text states the evening the crescent was looked for, whether it was seen (ثبوت رؤية) or not (عدم ثبوت رؤية), and the Gregorian date of the 1st. English searches and plain HTTP fetches usually fail to find these; open the URL in a browser, or Google the Arabic title `قرار دائرة الأهلة بالمحكمة العليا لشهر <month> <year> هـ`. The Supreme Court issues a decision every month, not only for Ramadan and Dhul Hijjah.
 
 ## How the page computes dates
 
