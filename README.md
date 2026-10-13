@@ -4,14 +4,14 @@ A single page that shows today's Hijri date and the months of the year so far, b
 
 Live site: https://tahirlanre.github.io/moon-sighting/
 
-The page only ever shows what is known. The latest month shows days 1–29; the 30th appears once the next month's sighting is entered, because that is when the month's length is known. If the data runs out, the page says "Awaiting moon sighting" rather than guessing.
+The page only ever shows what is known. The latest month marks the 29th with a crescent, the evening the new moon is looked for, and shows the 30th with a dashed outline because it only happens if the moon is not seen. It becomes a normal day once the next month's sighting is entered. If the data runs out, the page says "Awaiting moon sighting" rather than guessing.
 
 ## Updating each month
 
 Everything lives in [`sightings.js`](sightings.js). When the new month is announced, add one line to the end of the list and commit:
 
 ```js
-{ year: 1448, month: "Jumada al-Ula", sighted: "2026-10-10", source: MOJ + 86 },
+{ year: 1448, month: "Jumada al-Ula", sighted: "2026-10-11", source: MOJ + 86 },
 ```
 
 - `sighted` is the evening the moon was seen (`YYYY-MM-DD`). The 1st of the month is the following day.

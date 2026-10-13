@@ -4,10 +4,10 @@ A static page that shows today's Hijri date and the months of the current Hijri 
 
 ## Ground rules
 
-- **Only confirmed dates.** The page shows what has been announced, never a prediction. The latest month shows days 1–29; the 30th appears only once the next month's entry exists. If the data runs out, the page says "Awaiting moon sighting". Do not add projected or "expected" dates unless the owner asks; this was considered and deliberately left out.
+- **Only confirmed dates.** The page shows what has been announced, never a prediction. The latest month shows days 1–29 as normal and the 30th with a dashed outline, marked unconfirmed, until the next month's entry exists. The large date at the top never shows an unconfirmed day; if the data runs out it says "Awaiting moon sighting". Do not add projected or "expected" dates unless the owner asks; this was considered and deliberately left out.
 - **Source of truth is the Saudi Supreme Court.** Dates follow the monthly decisions of its Crescent Department (دائرة الأهلة), published by the Ministry of Justice. Not Umm al-Qura calculations, not other countries' sightings, not astronomical estimates.
 - **No build step, no dependencies, no framework.** Two files (`index.html`, `sightings.js`) served as-is by GitHub Pages from the root of `main`. Keep it that way.
-- **Minimal text.** The page shows today's Gregorian date, the Hijri date, and the month grids with an "Announcement" link per month. No explanatory sentences: not how a month began, not when the next moon will be looked for, not why the 30th is missing. The owner asked for this on 2026-10-13.
+- **Minimal text.** The page shows today's Gregorian date, the Hijri date, and the month grids with an "Announcement" link per month. The only explanatory text is one line under the current month, keyed to a crescent marker on the 29th: the evening of the moon watch, and that the 30th becomes the 1st of the next month if the moon is seen. Nothing else: not how a month began, not whether the moon was sighted. The owner set this on 2026-10-13.
 - **Keep updating trivial.** The owner updates the site by adding one line to `sightings.js`, usually in the GitHub web editor. Any change must preserve that.
 
 ## Files
@@ -37,7 +37,7 @@ itemId 82–86 are Muharram to Jumada al-Ula 1448. The text states the evening t
 
 ## How the page computes dates
 
-All date arithmetic is on UTC midnights so daylight saving never shifts a day. "Today" is the viewer's local calendar date. Each month's length is the gap to the next entry's start; the last entry is open-ended and shown as 29 days. The current Hijri year is shown expanded; earlier years in the file collapse into `<details>`.
+All date arithmetic is on UTC midnights so daylight saving never shifts a day. "Today" is the viewer's local calendar date. Each month's length is the gap to the next entry's start; the last entry is open-ended, counted as 29 days and drawn with an unconfirmed 30th. The current Hijri year is shown expanded; earlier years in the file collapse into `<details>`.
 
 ## Verifying changes
 

@@ -96,6 +96,7 @@
     padding-bottom: 4px;
   }
   .day {
+    position: relative;
     text-align: center;
     padding: 6px 0;
     border-radius: 8px;
@@ -105,6 +106,14 @@
   .day span { display: block; font-size: 0.68rem; color: var(--muted); white-space: nowrap; }
   .day.today { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
   .day.today span { color: inherit; opacity: 0.85; }
+  .day .mark {
+    position: absolute; top: -5px; right: -5px; width: 15px; height: 15px; padding: 2px;
+    border-radius: 50%; background: var(--card); color: var(--accent);
+  }
+  .day.tentative { border-style: dashed; color: var(--muted); }
+  .day.tentative.today { background: transparent; border-color: var(--accent); color: var(--ink); }
+  .month .note { display: flex; gap: 6px; color: var(--muted); font-size: 0.85rem; margin: 12px 0 0; }
+  .month .note .mark { flex: none; width: 12px; height: 12px; margin-top: 3px; color: var(--accent); }
 
   footer { margin-top: 32px; text-align: center; color: var(--muted); font-size: 0.8rem; }
 </style>
@@ -115,7 +124,6 @@
   <div id="warnings"></div>
   <div id="calendar"></div>
   <footer>
-    Islamic days begin at sunset, so each date starts the evening before the day shown.<br>
     Dates follow the Saudi Supreme Court's sighting decisions. <a href="https://github.com/tahirlanre/moon-sighting">Source on GitHub</a>
   </footer>
 </main>
@@ -133,12 +141,31 @@
     new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", ...opts }).format(t);
   const long = (t) => fmt(t, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   const short = (t) => fmt(t, { day: "numeric", month: "short" });
+  const weekdayShort = (t) => fmt(t, { weekday: "short", day: "numeric", month: "short" });
+
+  const MONTH_NAMES = ["Muharram", "Safar", "Rabi' al-Awwal", "Rabi' al-Thani", "Jumada al-Ula",
+    "Jumada al-Akhirah", "Rajab", "Sha'ban", "Ramadan", "Shawwal", "Dhul Qa'dah", "Dhul Hijjah"];
+  const nextMonthName = (name) => {
+    const i = MONTH_NAMES.indexOf(name);
+    return i < 0 ? null : MONTH_NAMES[(i + 1) % 12];
+  };
 
   const el = (tag, className, text) => {
     const node = document.createElement(tag);
     if (className) node.className = className;
     if (text !== undefined) node.textContent = text;
     return node;
+  };
+  const crescent = () => {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("class", "mark");
+    svg.setAttribute("aria-hidden", "true");
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", "M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z");
+    path.setAttribute("fill", "currentColor");
+    svg.append(path);
+    return svg;
   };
   const link = (href, text) => {
     const a = el("a", "", text);
@@ -204,13 +231,28 @@
     ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].forEach((d) => grid.append(el("div", "dow", d)));
     const blanks = (new Date(m.start).getUTCDay() + 6) % 7;
     for (let i = 0; i < blanks; i++) grid.append(el("div"));
-    for (let d = 1; d <= m.days; d++) {
+    const shown = m.open ? 30 : m.days;
+    for (let d = 1; d <= shown; d++) {
       const date = m.start + (d - 1) * DAY;
-      const cell = el("div", date === today ? "day today" : "day");
+      const classes = ["day"];
+      if (date === today) classes.push("today");
+      if (d > m.days) classes.push("tentative");
+      const cell = el("div", classes.join(" "));
       cell.append(el("b", "", d), el("span", "", short(date)));
+      if (m.open && d === 29) cell.append(crescent());
+      if (d > m.days) cell.title = "Not confirmed yet";
       grid.append(cell);
     }
     card.append(grid);
+
+    if (m.open) {
+      const next = nextMonthName(m.month);
+      const note = el("p", "note");
+      note.append(crescent(), el("span", "",
+        `New moon watch on the evening of the 29th, ${weekdayShort(m.start + 28 * DAY)}. ` +
+        `If it is seen, the 30th becomes ${next ? "1\u00a0" + next.replaceAll("-", "\u2011") : "the 1st of the next month"}.`));
+      card.append(note);
+    }
     return card;
   }
 
